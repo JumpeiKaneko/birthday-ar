@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Happy Birthday AR</title>
+    
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <script>
+      // ターゲット（手紙）を見つけたら再生ボタンを表示し、クリックで音楽を再生するコンポーネント
+      AFRAME.registerComponent('audio-handler', {
+        init: function () {
+          this.playButton = document.querySelector("#play-button");
+          this.target = document.querySelector("#letter-target");
+          this.song = new Audio("song.mp3"); // ここで曲ファイルを指定
+          this.song.preload = "auto";
+          this.isVisible = false;
+
+          // 再生ボタンがクリックされたら
+          this.playButton.addEventListener('click', () => {
+            if (this.song.paused) {
+              this.song.play();
+              // ボタンの文字を「再生中...」などに変えても良い
+              this.playButton.setAttribute("material", "color", "gray"); 
+              this.playButton.querySelector("a-text").setAttribute("value", "Playing...");
+            }
+          });
+
+          // ターゲット（手紙）が見つかった時の処理
+          this.target.addEventListener("targetFound", () => {
+            this.isVisible = true;
+            if (this.song.paused) {
+              this.playButton.setAttribute("visible", true); // ボタンを表示
+            }
+          });
+
+          // ターゲット（手紙）が失われた時の処理
+          this.target.addEventListener("targetLost", () => {
+            this.isVisible = false;
+            this.playButton.setAttribute("visible", false); // ボタンを非表示
+            
+            // ターゲットから外れたら音楽を止める場合
+            this.song.pause();
+            this.song.currentTime = 0; // 曲を最初に戻す
+            this.playButton.setAttribute("material", "color", "blue"); // ボタンの色を戻す
+            this.playButton.querySelector("a-text").setAttribute("value", "Tap to Play"); // ボタンの文字を戻す
+          });
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <a-scene 
+      mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes;" 
+      vr-mode-ui="enabled: false" 
+      device-orientation-permission-ui="enabled: false"
+      audio-handler>
+      
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <a-mindar-image-target id="letter-target" target-index="0">
+        
+        <a-entity id="play-button" visible="false">
+          <a-plane 
+            color="blue" 
+            height="0.4" 
+            width="0.8" 
+            position="0 0.5 0" 
+            material="opacity: 0.8"
+            scale="1 1 1">
+            <a-text value="Tap to Play" align="center" color="white" width="2"></a-text>
+          </a-plane>
+        </a-entity>
+
+        <a-plane src="./trigger-image.jpg" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
+
+      </a-mindar-image-target>
+    </a-scene>
+  </body>
+</html>

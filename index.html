@@ -44,7 +44,7 @@
     </script>
     
     <style>
-      /* ローディング画面のスタイル (変更なし) */
+      /* ローディング画面のスタイル */
       [slot="ui-loading"] {
         position: absolute;
         top: 0;
@@ -54,20 +54,24 @@
         
         background-color: #f0f0f0; 
         display: flex;
+        flex-direction: column; /* 縦並びにするため */
         justify-content: center;
         align-items: center;
         
         color: #333;
-        font-size: 28px;
-        font-family: sans-serif;
-        font-weight: bold;
-        z-index: 10; /* 念のため手前に表示する設定 */
-      }
+        font-size: 32px; /* 少し大きく */
+        
+        /* ★★ フォントとデザインを調整しました ★★ */
+        font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; /* 日本語フォント優先 */
+        font-weight: 900; /* より太く */
+        letter-spacing: 0.08em; /* 文字間隔を少し開ける */
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* わずかな影で立体感 */
+        line-height: 1.5; /* 行間を調整 */
+        text-align: center; /* 中央揃え */
+        /* ★★ ここまで ★★ */
 
-      /* ★★ ここを追加 ★★ */
-      /* ARの準備が完了したら(a-sceneにar-readyクラスが付いたら)、ローディング画面を強制的に非表示にする */
-      a-scene.ar-ready [slot="ui-loading"] {
-        display: none;
+        z-index: 10;
+        cursor: pointer; 
       }
       
     </style>
@@ -78,10 +82,12 @@
       mindar-image="imageTargetSrc: ./mind/targets.mind; uiLoading: yes; uiScanning: yes;"
       vr-mode-ui="enabled: false" 
       device-orientation-permission-ui="enabled: false"
-      audio-handler>
+      audio-handler
+      paused>
       
       <div slot="ui-loading">
-        誕生日おめでとう！
+        お誕生日おめでとう！<br>
+        <span style="font-size: 0.7em; font-weight: 700; display: block; margin-top: 10px;">（タップしてスタート）</span>
       </div>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -100,5 +106,37 @@
         </a-entity>
       </a-mindar-image-target>
     </a-scene>
-  </body>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const loadingScreen = document.querySelector('[slot="ui-loading"]');
+        const scene = document.querySelector('a-scene');
+
+        if (loadingScreen && scene) {
+          loadingScreen.addEventListener('click', () => {
+            
+            loadingScreen.style.display = 'none';
+            scene.play(); 
+
+            try {
+              const audioHandler = scene.components['audio-handler'];
+              if (audioHandler && audioHandler.song) {
+                audioHandler.song.load();
+                
+                const song = audioHandler.song;
+                if (song.paused) {
+                  song.play().then(() => {
+                    song.pause();
+                    song.currentTime = 0; 
+                  }).catch(e => console.log("Audio unlock attempted."));
+                }
+              }
+            } catch (e) {
+              console.error("Audio unlock failed:", e);
+            }
+          });
+        }
+      });
+    </script>
+    </body>
 </html>

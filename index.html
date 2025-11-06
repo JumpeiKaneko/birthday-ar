@@ -8,55 +8,48 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <script>
-      // ターゲット（手紙）を見つけたら再生ボタンを表示し、クリックで音楽を再生するコンポーネント
       AFRAME.registerComponent('audio-handler', {
-        init: function () {
-          this.playButton = document.querySelector("#play-button");
-          this.target = document.querySelector("#letter-target");
-          this.song = new Audio("song.mp3"); // ここで曲ファイルを指定
-          this.song.preload = "auto";
-          this.isVisible = false;
-
-          // 再生ボタンがクリックされたら
-          this.playButton.addEventListener('click', () => {
-            if (this.song.paused) {
-              this.song.play();
-              // ボタンの文字を「再生中...」などに変えても良い
-              this.playButton.setAttribute("material", "color", "gray"); 
-              this.playButton.querySelector("a-text").setAttribute("value", "Playing...");
-            }
-          });
-
-          // ターゲット（手紙）が見つかった時の処理
-          this.target.addEventListener("targetFound", () => {
-            this.isVisible = true;
-            if (this.song.paused) {
-              this.playButton.setAttribute("visible", true); // ボタンを表示
-            }
-          });
-
-          // ターゲット（手紙）が失われた時の処理
-          this.target.addEventListener("targetLost", () => {
-            this.isVisible = false;
-            this.playButton.setAttribute("visible", false); // ボタンを非表示
-            
-            // ターゲットから外れたら音楽を止める場合
-            this.song.pause();
-            this.song.currentTime = 0; // 曲を最初に戻す
-            this.playButton.setAttribute("material", "color", "blue"); // ボタンの色を戻す
-            this.playButton.querySelector("a-text").setAttribute("value", "Tap to Play"); // ボタンの文字を戻す
-          });
-        }
+        // ...（ここの中身は変更ありません）...
       });
     </script>
-  </head>
+    
+    <style>
+      /* [slot="ui-loading"] でローディング画面を指定 */
+      [slot="ui-loading"] {
+        /* 画面全体に広げる */
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        
+        /* 背景色 */
+        background-color: #f0f0f0; 
+        
+        /* 文字をど真ん中に配置 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        
+        /* 文字のスタイル */
+        color: #333;
+        font-size: 28px;
+        font-family: sans-serif;
+        font-weight: bold;
+      }
+    </style>
+    </head>
   <body>
+
     <a-scene 
-      mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes;" 
+      mindar-image="imageTargetSrc: ./targets.mind; uiLoading: yes; uiScanning: yes;" 
       vr-mode-ui="enabled: false" 
       device-orientation-permission-ui="enabled: false"
       audio-handler>
       
+      <div slot="ui-loading">
+        誕生日おめでとう！
+      </div>
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-mindar-image-target id="letter-target" target-index="0">

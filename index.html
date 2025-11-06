@@ -1,151 +1,109 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Happy Birthday AR</title>
-    
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
-    <script>
-      // 音楽再生用コンポーネント (変更なし)
-      AFRAME.registerComponent('audio-handler', {
-        init: function () {
-          this.playButton = document.querySelector("#play-button");
-          this.target = document.querySelector("#letter-target");
-          this.song = new Audio("./audio/song.mp3"); // audioフォルダ内のsong.mp3
-          this.song.preload = "auto";
-          this.isVisible = false;
-
-          this.playButton.addEventListener('click', () => {
-            if (this.song.paused) {
-              this.song.play();
-              this.playButton.setAttribute("material", "color", "gray"); 
-              this.playButton.querySelector("a-text").setAttribute("value", "Playing...");
-            }
-          });
-
-          this.target.addEventListener("targetFound", () => {
-            this.isVisible = true;
-            if (this.song.paused) {
-              this.playButton.setAttribute("visible", true);
-            }
-          });
-
-          this.target.addEventListener("targetLost", () => {
-            this.isVisible = false;
-            this.playButton.setAttribute("visible", false);
-            this.song.pause();
-            this.song.currentTime = 0; 
-            this.playButton.setAttribute("material", "color", "blue");
-            this.playButton.querySelector("a-text").setAttribute("value", "Tap to Play");
-          });
-        }
-      });
-    </script>
+    <title>Happy Birthday!</title>
     
     <style>
-      /* ローディング画面のスタイル (変更なし) */
-      [slot="ui-loading"] {
+      /* htmlとbodyを画面全体に広げる
+      */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+      }
+      
+      /* クリックするスタート画面 (以前のローディング画面のデザインを流用)
+      */
+      #start-screen {
+        /* 画面全体に広げる */
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         
+        /* 白背景 */
         background-color: #f0f0f0; 
+        
+        /* 文字を中央揃え（縦横） */
         display: flex;
-        flex-direction: column;
+        flex-direction: column; 
         justify-content: center;
         align-items: center;
         
+        /* 黒字 */
         color: #333;
         font-size: 32px;
         
-        font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+        /* 以前のフォントデザインを適用 */
         font-weight: 900;
         letter-spacing: 0.08em;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         line-height: 1.5;
         text-align: center;
-
-        z-index: 10;
+        
+        /* タップできることを示すカーソル */
         cursor: pointer; 
+        z-index: 10;
+      }
+      
+      /* 再生中の文字スタイル（クリック後に表示） */
+      #start-screen .playing-text {
+        font-size: 0.7em;
+        font-weight: 700;
+        display: block;
+        margin-top: 10px;
+        color: #555; /* 少し薄い色 */
       }
     </style>
-  </head>
-  <body>
-    
-    <a-scene 
-      mindar-image="imageTargetSrc: ./mind/targets.mind; uiLoading: yes; uiScanning: yes;"
-      vr-mode-ui="enabled: false" 
-      device-orientation-permission-ui="enabled: false"
-      audio-handler
-      paused>
-      
-      <div slot="ui-loading">
-        お誕生日おめでとう！<br>
-        <span style="font-size: 0.7em; font-weight: 700; display: block; margin-top: 10px;">（タップしてスタート）</span>
-      </div>
+</head>
+<body>
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-      <a-mindar-image-target id="letter-target" target-index="0">
-        <a-entity id="play-button" visible="false">
-          <a-plane 
-            color="blue" 
-            height="0.4" 
-            width="0.8" 
-            position="0 0.5 0" 
-            material="opacity: 0.8"
-            scale="1 1 1">
-            <a-text value="Tap to Play" align="center" color="white" width="2"></a-text>
-          </a-plane>
-        </a-entity>
-      </a-mindar-image-target>
-    </a-scene>
+    <div id="start-screen">
+      お誕生日おめでとう！
+      <span class="tap-text" style="font-size: 0.7em; font-weight: 700; display: block; margin-top: 10px;">
+        （タップしてスタート）
+      </span>
+    </div>
 
     <script>
+      // ページの読み込みが完了したら実行
       document.addEventListener('DOMContentLoaded', () => {
-        const loadingScreen = document.querySelector('[slot="ui-loading"]');
-        const scene = document.querySelector('a-scene');
-
-        if (loadingScreen && scene) {
-          loadingScreen.addEventListener('click', () => {
+        
+        // スタート画面の要素を取得
+        const startScreen = document.querySelector('#start-screen');
+        
+        // 1. 音楽ファイルを用意します
+        // ( audio/song.mp3 へのパスはそのままです )
+        const song = new Audio('./audio/song.mp3');
+        song.preload = 'auto'; // 事前に読み込む
+        
+        // 2. スタート画面がクリックされた時の処理
+        startScreen.addEventListener('click', () => {
+          
+          // 音楽を再生します
+          song.play().then(() => {
+            // 再生が成功したら
             
-            // 1. ローディング画面を非表示にする
-            loadingScreen.style.display = 'none';
-
-            // 2. ARシーンの一時停止を解除
-            scene.play(); 
-
-            // 3. ★★ ここを追加 ★★
-            // Mind-ARのシステムを明示的に「スタート」させる
-            // これでカメラとスキャンが起動することを期待します
-            try {
-              // 'mindar-image-system' が Mind-AR の本体です
-              const mindarSystem = scene.systems['mindar-image-system'];
-              if (mindarSystem) {
-                mindarSystem.start();
-              }
-            } catch (e) {
-              console.error("MindAR start failed:", e);
-            }
+            // メッセージを変更します
+            startScreen.innerHTML = 'お誕生日おめでとう！<br>' +
+              '<span class="playing-text">再生中...</span>';
+              
+            // 曲が終わったら最初から再生する（ループ再生）
+            song.loop = true;
             
-            // 4. ★★ ここも追加 (復活) ★★
-            // オーディオの再生準備も行う（再生はしない）
-            // これがAR認識に影響していた可能性を考慮し、load()だけ復活させます
-            try {
-              const audioHandler = scene.components['audio-handler'];
-              if (audioHandler && audioHandler.song) {
-                audioHandler.song.load();
-              }
-            } catch (e) {
-              console.error("Audio load failed:", e);
-            }
+          }).catch(e => {
+            // 
+            console.error("音楽の再生に失敗しました:", e);
+            startScreen.querySelector('.tap-text').innerHTML = "（エラー発生）";
           });
-        }
+          
+        }, { once: true }); // ★ 重要な設定: スタートボタンは1回だけ押せるようにします
+        
       });
     </script>
-    </body>
+</body>
 </html>

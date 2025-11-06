@@ -8,45 +8,34 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <script>
-      // ARターゲットを見つけたら再生ボタンを表示し、クリックで音楽を再生するカスタムコンポーネント
       AFRAME.registerComponent('audio-handler', {
         init: function () {
-          // 再生ボタンの要素を取得
           this.playButton = document.querySelector("#play-button");
-          // ARターゲットの要素を取得
           this.target = document.querySelector("#letter-target");
-          // 音楽ファイルを読み込む
-          this.song = new Audio("./audio/song.mp3"); // ★ここを修正しました: audioフォルダ内のsong.mp3
-          this.song.preload = "auto"; // 音楽ファイルを事前に読み込む設定
-          this.isVisible = false; // ARターゲットが見えているかのフラグ
+          this.song = new Audio("./audio/song.mp3"); // audioフォルダ内のsong.mp3
+          this.song.preload = "auto";
+          this.isVisible = false;
 
-          // 再生ボタンがクリックされた時の処理
           this.playButton.addEventListener('click', () => {
             if (this.song.paused) {
-              this.song.play(); // 音楽を再生
-              // ボタンの見た目を「再生中」に変更
+              this.song.play();
               this.playButton.setAttribute("material", "color", "gray"); 
               this.playButton.querySelector("a-text").setAttribute("value", "Playing...");
             }
           });
 
-          // ARターゲット（手紙）が見つかった時の処理
           this.target.addEventListener("targetFound", () => {
             this.isVisible = true;
             if (this.song.paused) {
-              this.playButton.setAttribute("visible", true); // 再生ボタンを表示
+              this.playButton.setAttribute("visible", true);
             }
           });
 
-          // ARターゲット（手紙）が失われた時の処理
           this.target.addEventListener("targetLost", () => {
             this.isVisible = false;
-            this.playButton.setAttribute("visible", false); // 再生ボタンを非表示
-            
-            // ターゲットから外れたら音楽を停止し、最初に戻す
+            this.playButton.setAttribute("visible", false);
             this.song.pause();
             this.song.currentTime = 0; 
-            // ボタンの見た目を元に戻す
             this.playButton.setAttribute("material", "color", "blue");
             this.playButton.querySelector("a-text").setAttribute("value", "Tap to Play");
           });
@@ -55,7 +44,7 @@
     </script>
     
     <style>
-      /* MindARのローディングUI（ui-loading）のスタイル設定 */
+      /* ローディング画面のスタイル (変更なし) */
       [slot="ui-loading"] {
         position: absolute;
         top: 0;
@@ -63,7 +52,7 @@
         width: 100%;
         height: 100%;
         
-        background-color: #f0f0f0; /* 背景色 */
+        background-color: #f0f0f0; 
         display: flex;
         justify-content: center;
         align-items: center;
@@ -72,12 +61,21 @@
         font-size: 28px;
         font-family: sans-serif;
         font-weight: bold;
+        z-index: 10; /* 念のため手前に表示する設定 */
       }
+
+      /* ★★ ここを追加 ★★ */
+      /* ARの準備が完了したら(a-sceneにar-readyクラスが付いたら)、ローディング画面を強制的に非表示にする */
+      a-scene.ar-ready [slot="ui-loading"] {
+        display: none;
+      }
+      
     </style>
   </head>
   <body>
+    
     <a-scene 
-      mindar-image="imageTargetSrc: ./mind/targets.mind; uiLoading: yes; uiScanning: yes;"  // ★ここを修正しました: mindフォルダ内のtargets.mind
+      mindar-image="imageTargetSrc: ./mind/targets.mind; uiLoading: yes; uiScanning: yes;"
       vr-mode-ui="enabled: false" 
       device-orientation-permission-ui="enabled: false"
       audio-handler>
@@ -89,7 +87,6 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-mindar-image-target id="letter-target" target-index="0">
-        
         <a-entity id="play-button" visible="false">
           <a-plane 
             color="blue" 
@@ -101,8 +98,7 @@
             <a-text value="Tap to Play" align="center" color="white" width="2"></a-text>
           </a-plane>
         </a-entity>
-
-        </a-mindar-image-target>
+      </a-mindar-image-target>
     </a-scene>
   </body>
 </html>

@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <script>
+      // 音楽再生用コンポーネント (変更なし)
       AFRAME.registerComponent('audio-handler', {
         init: function () {
           this.playButton = document.querySelector("#play-button");
@@ -44,7 +45,7 @@
     </script>
     
     <style>
-      /* ローディング画面のスタイル */
+      /* ローディング画面のスタイル (変更なし) */
       [slot="ui-loading"] {
         position: absolute;
         top: 0;
@@ -54,26 +55,23 @@
         
         background-color: #f0f0f0; 
         display: flex;
-        flex-direction: column; /* 縦並びにするため */
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         
         color: #333;
-        font-size: 32px; /* 少し大きく */
+        font-size: 32px;
         
-        /* ★★ フォントとデザインを調整しました ★★ */
-        font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; /* 日本語フォント優先 */
-        font-weight: 900; /* より太く */
-        letter-spacing: 0.08em; /* 文字間隔を少し開ける */
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* わずかな影で立体感 */
-        line-height: 1.5; /* 行間を調整 */
-        text-align: center; /* 中央揃え */
-        /* ★★ ここまで ★★ */
+        font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        line-height: 1.5;
+        text-align: center;
 
         z-index: 10;
         cursor: pointer; 
       }
-      
     </style>
   </head>
   <body>
@@ -108,32 +106,47 @@
     </a-scene>
 
     <script>
+      // ページの読み込みが完了したら実行
       document.addEventListener('DOMContentLoaded', () => {
+        // ローディング画面とARシーンの要素を取得
         const loadingScreen = document.querySelector('[slot="ui-loading"]');
         const scene = document.querySelector('a-scene');
 
         if (loadingScreen && scene) {
+          // ローディング画面にクリック（タップ）イベントを追加
           loadingScreen.addEventListener('click', () => {
             
+            // 1. ローディング画面を非表示にする
             loadingScreen.style.display = 'none';
+
+            // 2. ARシーンの「一時停止(paused)」を解除して、カメラを起動する
             scene.play(); 
 
+            // 3. 音楽再生の準備（ブラウザの再生制限を解除するため）
             try {
               const audioHandler = scene.components['audio-handler'];
               if (audioHandler && audioHandler.song) {
+                // 音楽ファイルを「読み込む」操作だけを行う
                 audioHandler.song.load();
-                
-                const song = audioHandler.song;
-                if (song.paused) {
-                  song.play().then(() => {
-                    song.pause();
-                    song.currentTime = 0; 
-                  }).catch(e => console.log("Audio unlock attempted."));
-                }
               }
             } catch (e) {
-              console.error("Audio unlock failed:", e);
+              console.error("Audio load failed:", e);
             }
+            
+            /*
+             ↓
+             ↓  この部分（再生してすぐ止める処理）を削除しました
+             ↓
+            // (念のため) 再生してすぐ一時停止することで、音声の準備を万全にする
+            // const song = audioHandler.song;
+            // if (song.paused) {
+            //   song.play().then(() => {
+            //     song.pause();
+            //     song.currentTime = 0; 
+            //   }).catch(e => console.log("Audio unlock attempted."));
+            // }
+            */
+            
           });
         }
       });
